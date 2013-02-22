@@ -149,23 +149,31 @@
 			if (this.isShown && this.options.consumeTab) {
 				this.$element.on('keydown.tabindex.modal', '[data-tabindex]', function (e) {
 			    	if (e.keyCode && e.keyCode == 9){
-						var $next = $(this),
-							$rollover = $(this);
+                        var maxTabIdx = 0;
+                        var minTabIdx = 9999;
+                        var currIdx = $(this).data('tabindex');
+                        var tabable = that.$element.find('[data-tabindex]:enabled:not([readonly])');
+                        var $next = this;
+                        tabable.each(function(el) {
+                            var i = $(this).data('tabindex');
+                            maxTabIdx = Math.max(i, maxTabIdx);
+                            minTabIdx = Math.min(i, minTabIdx);
+                        });
 
-						that.$element.find('[data-tabindex]:enabled:not([readonly])').each(function (e) {
-							if (!e.shiftKey){
-						 		$next = $next.data('tabindex') < $(this).data('tabindex') ?
-									$next = $(this) :
-									$rollover = $(this);
-							} else {
-								$next = $next.data('tabindex') > $(this).data('tabindex') ?
-									$next = $(this) :
-									$rollover = $(this);
-							}
-						});
+                        if(currIdx === minTabIdx && e.shiftKey)
+                            $next = that.$element.find('[data-tabindex='+maxTabIdx + ']');
+                        else if(currIdx === maxTabIdx && !e.shiftKey)
+                            $next = that.$element.find('[data-tabindex='+minTabIdx + ']');
+                        else {
+                            if(e.shiftKey) {
+                                $next = that.$element.find('[data-tabindex='+ --currIdx + ']');
+                            }
+                            else {
+                                $next = that.$element.find('[data-tabindex='+ ++currIdx + ']');
+                            }
+                        }
 
-						$next[0] !== $(this)[0] ?
-							$next.focus() : $rollover.focus();
+						$next.focus();
 
 						e.preventDefault();
 					}
@@ -174,6 +182,9 @@
 				this.$element.off('keydown.tabindex.modal');
 			}
 		},
+        _indexOfNextTabable : function(currIdx, shiftKey) {
+
+        },
 
 		escape: function () {
 			var that = this;
