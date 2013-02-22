@@ -149,29 +149,35 @@
 			if (this.isShown && this.options.consumeTab) {
 				this.$element.on('keydown.tabindex.modal', '[data-tabindex]', function (e) {
 			    	if (e.keyCode && e.keyCode == 9){
-                        var maxTabIdx = 0;
-                        var minTabIdx = 9999;
+                        var max = 0;
+                        var min = 9999;
                         var currIdx = $(this).data('tabindex');
                         var tabable = that.$element.find('[data-tabindex]:enabled:not([readonly])');
-                        var $next = this;
+                        if(tabable.length === 1) return this.focus();
+                        var tabindex = [];
                         tabable.each(function(el) {
                             var i = $(this).data('tabindex');
-                            maxTabIdx = Math.max(i, maxTabIdx);
-                            minTabIdx = Math.min(i, minTabIdx);
+                            min = Math.min(i, min);
+                            max = Math.max(i, max);
+                            tabindex.push(i);
                         });
-
-                        if(currIdx === minTabIdx && e.shiftKey)
-                            $next = that.$element.find('[data-tabindex='+maxTabIdx + ']');
-                        else if(currIdx === maxTabIdx && !e.shiftKey)
-                            $next = that.$element.find('[data-tabindex='+minTabIdx + ']');
+                        var $sel = "";
+                        if(currIdx === min && e.shiftKey)
+                            $sel = '[data-tabindex='+max + ']';
+                        else if(currIdx === max && !e.shiftKey)
+                            $sel = '[data-tabindex='+min + ']';
                         else {
+                            tabindex = tabindex.sort(function(a,b) {return a > b;});
                             if(e.shiftKey) {
-                                $next = that.$element.find('[data-tabindex='+ --currIdx + ']');
+                                tabindex = tabindex.filter(function(a) {return a < currIdx;});
+                                $sel = '[data-tabindex='+ tabindex.slice(-1)[0] + ']';
                             }
                             else {
-                                $next = that.$element.find('[data-tabindex='+ ++currIdx + ']');
+                                tabindex = tabindex.filter(function(a) {return a > currIdx;});
+                                $sel = '[data-tabindex='+ tabindex[0] + ']';
                             }
                         }
+                        var $next = that.$element.find($sel);
 
 						$next.focus();
 
